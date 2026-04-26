@@ -1,0 +1,116 @@
+{% extends 'layout.html' %}
+{% block content %}
+<!-- Premium Header -->
+<div class="card border-0 text-white mb-4 position-relative" style="background: linear-gradient(135deg, #10b981 0%, #14b8a6 100%); border-radius: 1rem; overflow: hidden; box-shadow: 0 10px 30px rgba(16, 185, 129, 0.25);">
+    <div class="card-body p-4 border-0 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+        <div class="d-flex align-items-center position-relative z-1">
+            <div class="bg-white bg-opacity-25 rounded-circle d-flex align-items-center justify-content-center me-3 shadow-sm" style="width: 56px; height: 56px; backdrop-filter: blur(5px);">
+                <i class="fa-solid fa-clock-rotate-left text-white fs-4"></i>
+            </div>
+            <div>
+                <h2 class="fw-bold mb-0">Expense History</h2>
+                <div class="d-flex align-items-center text-white opacity-75 small mt-1">
+                    <i class="fa-regular fa-calendar me-1"></i> Showing records below
+                </div>
+            </div>
+        </div>
+        
+        <!-- Global Month Selector -->
+        <div class="position-relative z-1 ms-md-auto">
+            <form method="GET" class="d-flex align-items-center bg-white bg-opacity-25 rounded-pill px-3 py-2 shadow-sm border border-light border-opacity-25" style="backdrop-filter: blur(5px);">
+                <i class="fa-regular fa-calendar-alt text-white me-2"></i>
+                <input type="month" name="month" value="{{ month }}" class="form-control form-control-sm bg-transparent border-0 text-white fw-bold shadow-none p-0 cursor-pointer" onchange="this.form.submit()" style="color-scheme: dark; width: 120px;">
+            </form>
+        </div>
+        
+        <i class="fa-solid fa-list-check position-absolute z-0" style="font-size: 8rem; right: -10px; opacity: 0.1; transform: rotate(-10deg);"></i>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm" style="border-radius: 1rem; overflow: hidden;">
+    <!-- Tools & Filters Bar (Placeholder for future) -->
+    <div class="bg-white p-3 border-bottom d-flex justify-content-between align-items-center">
+        <h6 class="mb-0 fw-bold text-dark"><i class="fa-solid fa-file-invoice me-2 text-primary"></i>All Transactions</h6>
+        <a href="{{ url_for('add_expense') }}" class="btn btn-sm btn-light border fw-semibold"><i class="fa-solid fa-plus me-1 text-primary"></i>New</a>
+    </div>
+
+    <!-- Data Table -->
+    <div class="table-responsive">
+        <table class="table table-hover mb-0 align-middle">
+            <thead style="background: #F8FAFC; border-bottom: 2px solid #E2E8F0;">
+                <tr>
+                    <th class="px-4 py-3 text-muted fw-bold small text-uppercase spacing-1 border-0">Date</th>
+                    <th class="py-3 text-muted fw-bold small text-uppercase spacing-1 border-0">Vendor & Details</th>
+                    <th class="py-3 text-muted fw-bold small text-uppercase spacing-1 border-0">Category</th>
+                    <th class="py-3 text-end text-muted fw-bold small text-uppercase spacing-1 border-0">Amount</th>
+                    <th class="px-4 py-3 text-center text-muted fw-bold small text-uppercase spacing-1 border-0">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for exp in expenses %}
+                <tr class="transition-all hover-bg">
+                    <td class="px-4 py-3 align-middle">
+                        <div class="d-flex flex-column">
+                            {% set date_obj = exp.date.split('-') %}
+                            {% if date_obj|length == 3 %}
+                            <span class="fw-bold text-dark">{{ date_obj[2] }}/{{ date_obj[1] }}/{{ date_obj[0] }}</span>
+                            {% else %}
+                            <span class="text-muted fw-semibold">{{ exp.date }}</span>
+                            {% endif %}
+                        </div>
+                    </td>
+                    <td class="py-3">
+                        <div class="d-flex align-items-center">
+                            <div class="rounded-circle bg-light d-flex justify-content-center align-items-center me-3 border" style="width: 40px; height: 40px;">
+                                <span class="fw-bold text-primary">{{ exp.vendor[:1]|upper }}</span>
+                            </div>
+                            <div>
+                                <h6 class="mb-0 fw-bold text-dark">{{ exp.vendor }}</h6>
+                                {% if exp.description %}
+                                <div class="text-muted small d-inline-block text-truncate" style="max-width: 250px;"><i class="fa-solid fa-comment-dots me-1 opacity-50"></i>{{ exp.description }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </td>
+                    <td class="py-3">
+                        {% set cat_colors = {'Food': ['#fef3c7', '#d97706'], 'Travel': ['#dbeafe', '#2563eb'], 'Shopping': ['#fce7f3', '#db2777'], 'Utilities': ['#fae8ff', '#9333ea'], 'Other': ['#f3f4f6', '#4b5563']} %}
+                        {% set bg, text = cat_colors.get(exp.category, ['#f3f4f6', '#4b5563']) %}
+                        <span class="badge rounded-pill fw-bold" style="background-color: {{ bg }}; color: {{ text }}; padding: 6px 12px; border: 1px solid rgba(0,0,0,0.05);">
+                            {{ exp.category }}
+                        </span>
+                    </td>
+                    <td class="py-3 text-end fw-bolder text-dark fs-6 font-monospace">
+                        ₹{{ "%.2f"|format(exp.amount) }}
+                    </td>
+                    <td class="px-4 py-3 text-center">
+                        <form action="{{ url_for('delete_expense', expense_id=exp.id) }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to permanently delete this expense?');">
+                            <button type="submit" class="btn btn-sm btn-outline-danger shadow-sm rounded-circle d-inline-flex justify-content-center align-items-center transition-all hover-lift" title="Delete Expense" style="width: 36px; height: 36px;">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="5" class="text-center py-5">
+                        <div class="d-inline-flex justify-content-center align-items-center bg-light rounded-circle mb-3" style="width: 80px; height: 80px;">
+                            <i class="fa-solid fa-receipt fs-2 text-muted opacity-50"></i>
+                        </div>
+                        <h5 class="fw-bold text-dark">No records found</h5>
+                        <p class="text-muted small mb-4">You have no expenses recorded for {{ month }}.</p>
+                        <a href="{{ url_for('add_expense') }}" class="btn btn-primary rounded-pill px-4 shadow-sm transition-all hover-lift"><i class="fa-solid fa-plus me-2"></i>Add Your First Expense</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<style>
+    .spacing-1 { letter-spacing: 1px; }
+    .transition-all { transition: all 0.2s ease-in-out; }
+    .hover-bg:hover { background-color: #f8fafc !important; }
+    .hover-lift:hover { transform: translateY(-2px); }
+</style>
+{% endblock %}

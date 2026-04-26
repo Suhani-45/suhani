@@ -1,0 +1,147 @@
+{% extends 'layout.html' %}
+{% block content %}
+<div class="row mt-4 mb-5 justify-content-center">
+    <div class="col-md-10 col-lg-8">
+        
+        <form method="POST" enctype="multipart/form-data">
+            
+            <!-- Premium Cover & Profile Photo Section -->
+            <div class="card border-0 mb-4 overflow-hidden shadow-sm" style="border-radius: 1rem;">
+                <div class="position-relative" style="height: 140px; background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);">
+                    <div class="position-absolute w-100 h-100" style="background-image: url('data:image/svg+xml,%3Csvg width=\'60\' height=\'60\' viewBox=\'0 0 60 60\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'none\' fill-rule=\'evenodd\'%3E%3Cg fill=\'%23ffffff\' fill-opacity=\'0.1\'%3E%3Cpath d=\'M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E');"></div>
+                </div>
+                <div class="card-body px-4 px-md-5 pt-0 pb-4 text-center position-relative">
+                    <div class="d-inline-flex position-relative bg-white p-1 rounded-circle shadow-sm" style="margin-top: -75px;">
+                        {% if user and user.photo %}
+                            <img src="{{ url_for('static', filename='uploads/' + user.photo) }}" alt="Profile Photo" class="rounded-circle" style="width: 140px; height: 140px; object-fit: cover;">
+                        {% else %}
+                            <div class="rounded-circle bg-light d-flex align-items-center justify-content-center" style="width: 140px; height: 140px;">
+                                <i class="fa-solid fa-user fs-1 text-secondary opacity-50"></i>
+                            </div>
+                        {% endif %}
+                        <label for="photo" class="position-absolute bottom-0 end-0 bg-primary text-white rounded-circle d-flex align-items-center justify-content-center shadow transition-all hover-lift" style="width: 40px; height: 40px; cursor: pointer; border: 3px solid #fff;">
+                            <i class="fa-solid fa-camera small"></i>
+                        </label>
+                        <input type="file" id="photo" name="photo" class="d-none" accept="image/*">
+                    </div>
+                    
+                    <h3 class="fw-bold mt-3 mb-1">{{ user.name if user and user.name else 'Your Profile' }}</h3>
+                    <p class="text-muted small mb-0"><i class="fa-solid fa-envelope me-1"></i>{{ user.email if user else 'Not available' }}</p>
+                    <div id="photoStatus" class="form-text text-success fw-semibold mt-2 d-none"><i class="fa-solid fa-check-circle me-1"></i>New photo selected</div>
+                </div>
+            </div>
+
+            <!-- Profile Details Section -->
+            <div class="card border-0 shadow-sm" style="border-radius: 1rem;">
+                <div class="card-body p-4 p-md-5">
+                    <div class="d-flex align-items-center mb-4 pb-3 border-bottom">
+                        <div class="bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 48px; height: 48px;">
+                            <i class="fa-solid fa-address-card text-primary fs-5"></i>
+                        </div>
+                        <div>
+                            <h5 class="mb-0 fw-bold text-dark">Personal Information</h5>
+                            <small class="text-muted">Update your details to customize your experience</small>
+                        </div>
+                    </div>
+
+                    <div class="row align-items-center mb-3">
+                        <div class="col-md-3">
+                            <label for="email" class="form-label text-muted fw-bold small text-uppercase spacing-1 mb-md-0">Email Config</label>
+                        </div>
+                        <div class="col-md-9">
+                            <div class="input-group border rounded-3 px-2 py-1 bg-light" style="border-color: #e2e8f0 !important;">
+                                <span class="input-group-text bg-transparent border-0 text-muted"><i class="fa-solid fa-at"></i></span>
+                                <input type="email" class="form-control bg-light border-0 text-muted px-2" id="email" value="{{ user.email if user else '' }}" disabled style="box-shadow: none;">
+                                <span class="input-group-text bg-transparent border-0"><i class="fa-solid fa-lock text-muted small"></i></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row align-items-center mb-3">
+                        <div class="col-md-3">
+                            <label for="name" class="form-label text-muted fw-bold small text-uppercase spacing-1 mb-md-0">Full Name</label>
+                        </div>
+                        <div class="col-md-9">
+                            <div class="input-group border rounded-3 px-2 py-1 transition-all focus-ring-group" style="background-color: #f8fafc; border-color: #e2e8f0 !important;">
+                                <span class="input-group-text bg-transparent border-0 text-muted"><i class="fa-regular fa-user"></i></span>
+                                <input type="text" class="form-control border-0 bg-transparent text-dark px-2" id="name" name="name" value="{{ user.name if user and user.name else '' }}" placeholder="Enter your full name" style="box-shadow: none;">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row align-items-center mb-4 pb-4 border-bottom">
+                        <div class="col-md-3">
+                            <label for="phone" class="form-label text-muted fw-bold small text-uppercase spacing-1 mb-md-0">Phone</label>
+                        </div>
+                        <div class="col-md-9">
+                            <div class="input-group border rounded-3 px-2 py-1 transition-all focus-ring-group" style="background-color: #f8fafc; border-color: #e2e8f0 !important;">
+                                <span class="input-group-text bg-transparent border-0 text-muted"><i class="fa-solid fa-phone"></i></span>
+                                <input type="tel" class="form-control border-0 bg-transparent text-dark px-2" id="phone" name="phone" value="{{ user.phone if user and user.phone else '' }}" placeholder="Enter your phone number" style="box-shadow: none;">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row align-items-center mb-3">
+                        <div class="col-md-3">
+                            <label for="age" class="form-label text-muted fw-bold small text-uppercase spacing-1 mb-md-0">Age</label>
+                        </div>
+                        <div class="col-md-9">
+                            <div class="input-group border rounded-3 px-2 py-1 transition-all focus-ring-group w-50" style="background-color: #f8fafc; border-color: #e2e8f0 !important;">
+                                <span class="input-group-text bg-transparent border-0 text-muted"><i class="fa-solid fa-calendar-days"></i></span>
+                                <input type="number" class="form-control border-0 bg-transparent text-dark px-2" id="age" name="age" value="{{ user.age if user and user.age else '' }}" placeholder="Years" min="10" max="120" style="box-shadow: none;">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row align-items-center mb-4">
+                        <div class="col-md-3">
+                            <label for="occupation" class="form-label text-muted fw-bold small text-uppercase spacing-1 mb-md-0">Occupation</label>
+                        </div>
+                        <div class="col-md-9">
+                            <div class="input-group border rounded-3 px-2 py-1 transition-all focus-ring-group" style="background-color: #f8fafc; border-color: #e2e8f0 !important;">
+                                <span class="input-group-text bg-transparent border-0 text-muted"><i class="fa-solid fa-briefcase"></i></span>
+                                <select class="form-select border-0 bg-transparent text-dark px-2 fw-semibold" id="occupation" name="occupation" style="box-shadow: none;">
+                                    <option value="">Select occupation...</option>
+                                    <option value="Student" {% if user and user.occupation == 'Student' %}selected{% endif %}>Student</option>
+                                    <option value="Employee" {% if user and user.occupation == 'Employee' %}selected{% endif %}>Employee</option>
+                                    <option value="Businessman" {% if user and user.occupation == 'Businessman' %}selected{% endif %}>Businessman</option>
+                                    <option value="Freelancer" {% if user and user.occupation == 'Freelancer' %}selected{% endif %}>Freelancer</option>
+                                    <option value="Homemaker" {% if user and user.occupation == 'Homemaker' %}selected{% endif %}>Homemaker</option>
+                                    <option value="Retired" {% if user and user.occupation == 'Retired' %}selected{% endif %}>Retired</option>
+                                    <option value="Other" {% if user and user.occupation == 'Other' %}selected{% endif %}>Other</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-end mt-5 pt-3 border-top">
+                        <button type="submit" class="btn btn-primary rounded-pill px-5 py-3 fw-bold shadow-sm transition-all hover-lift d-inline-flex justify-content-center align-items-center gap-2" style="background: linear-gradient(135deg, #3b82f6, #6366f1); border: none;">
+                            <i class="fa-solid fa-floppy-disk"></i> Save Profile Settings
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+        </form>
+    </div>
+</div>
+
+<script>
+    document.getElementById('photo').addEventListener('change', function(e) {
+        const photoStatus = document.getElementById('photoStatus');
+        if (e.target.files && e.target.files[0]) {
+            photoStatus.classList.remove('d-none');
+            // Give visual feedback to the label image container if possible
+        } else {
+            photoStatus.classList.add('d-none');
+        }
+    });
+</script>
+
+<style>
+    .spacing-1 { letter-spacing: 1px; }
+    .transition-all { transition: all 0.2s ease-in-out; }
+    .hover-lift:hover { transform: translateY(-2px); }
+    .focus-ring-group:focus-within { border-color: #3b82f6 !important; background-color: #fff !important; box-shadow: 0 0 0 4px rgba(59,130,246,0.1); }
+</style>
+{% endblock %}

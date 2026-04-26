@@ -1,0 +1,84 @@
+{% extends "layout.html" %}
+
+{% block title %}ReceiptIQ — Budget{% endblock %}
+
+{% block content %}
+<div class="hero">
+  <div class="hero-left">
+    <h1>Budget Goals</h1>
+    <p>Manage limits and goals for <strong>{{ month_label }}</strong></p>
+  </div>
+  <div class="month-picker">
+    <select id="month-select">
+      {% set months = [('01','January'),('02','February'),('03','March'),('04','April'),('05','May'),('06','June'),('07','July'),('08','August'),('09','September'),('10','October'),('11','November'),('12','December')] %}
+      {% for num, name in months %}
+        <option value="2026-{{ num }}" {{ 'selected' if month == '2026-'+num }}>{{ name }} 2026</option>
+      {% endfor %}
+    </select>
+  </div>
+</div>
+
+<div class="grid-2">
+  <div class="card">
+    <div class="card-head">
+      <span>⚙️ Update Budget Limit</span>
+    </div>
+    
+    <form action="{{ url_for('budget') }}" method="POST">
+      <input type="hidden" name="month" value="{{ month }}" />
+      <div class="form-group">
+        <label>Monthly Budget Amount (₹)</label>
+        <div style="position: relative; display: flex; align-items: center;">
+          <span style="position: absolute; left: 16px; color: var(--text-muted); font-family: var(--font-mono); font-size: 1.1rem; font-weight: 700;">₹</span>
+          <input type="number" name="budget" value="{{ budget|int }}" min="1" step="1" required style="padding-left: 40px; font-size: 1.2rem; font-family: var(--font-mono); font-weight: 700; color: #fff;" />
+        </div>
+      </div>
+      <button type="submit" class="btn btn-sky btn-full" style="padding: 14px; font-size: 1rem;">Save Budget Settings</button>
+    </form>
+  </div>
+
+  <div class="card" style="background: linear-gradient(135deg, rgba(20, 23, 31, 0.9), rgba(30, 34, 45, 0.9)); border-color: rgba(255,255,255,0.1);">
+    <div class="card-head">
+      <span>📊 Progress Tracker</span>
+    </div>
+    
+    <div style="margin-bottom: 24px;">
+      <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px;">
+        <span style="color: var(--text-muted); font-size: 0.9rem;">Current Spend</span>
+        <span class="amt" style="font-size: 1.8rem; color: {{ '#dc2626' if over else '#10b981' }}">₹{{ total }}</span>
+      </div>
+      <div style="display: flex; justify-content: space-between; align-items: baseline;">
+        <span style="color: var(--text-muted); font-size: 0.9rem;">Budget Limit</span>
+        <span class="amt" style="font-size: 1.1rem;">₹{{ budget }}</span>
+      </div>
+    </div>
+    
+    <div style="margin-bottom: 20px;">
+      <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-family: var(--font-mono); font-size: 0.8rem; font-weight: 700;">
+        <span style="color: var(--text-muted);">{{ pct }}% Used</span>
+        {% set rem = budget - total %}
+        <span style="color: {{ '#fca5a5' if over else '#6ee7b7' }}">{{ 'Exceeded by ₹' ~ (rem|abs) if over else '₹' ~ rem ~ ' remaining' }}</span>
+      </div>
+      <div class="bar-track" style="height: 12px; background: rgba(0,0,0,0.4);">
+        <div class="bar-fill {{ 'over' if over else 'warn' if pct > 75 else '' }}" style="width: {{ pct if pct <= 100 else 100 }}%;"></div>
+      </div>
+    </div>
+    
+    {% if suggestion %}
+      <div class="suggestion-box suggestion-{{ sug_type }}" style="margin-bottom: 0; padding: 12px 16px;">
+        <div style="font-size: 0.85rem;">{{ suggestion }}</div>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  document.getElementById("month-select").addEventListener("change", function(){
+    let params = new URLSearchParams(window.location.search);
+    params.set("month", this.value);
+    window.location.search = params.toString();
+  });
+</script>
+{% endblock %}

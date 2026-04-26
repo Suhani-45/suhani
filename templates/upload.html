@@ -1,0 +1,87 @@
+{% extends 'layout.html' %}
+{% block content %}
+<div class="row justify-content-center mt-4">
+    <div class="col-md-8 col-lg-6">
+        
+        <!-- Premium Header Area -->
+        <div class="card border-0 text-white mb-4 position-relative" style="background: linear-gradient(135deg, #14b8a6 0%, #0ea5e9 100%); border-radius: 1rem; overflow: hidden; box-shadow: 0 10px 30px rgba(14,165,233,0.3);">
+            <div class="card-body p-4 p-md-5">
+                <i class="fa-solid fa-wand-magic-sparkles position-absolute" style="font-size: 10rem; right: -25px; bottom: -30px; opacity: 0.15; transform: rotate(-10deg);"></i>
+                
+                <div class="mb-2">
+                    <span class="badge bg-white text-info mb-3 px-3 py-2 rounded-pill fw-bold shadow-sm" style="font-size: 0.85rem;"><i class="fa-solid fa-bolt me-1"></i>AI Powered</span>
+                    <h2 class="fw-bold mb-2">Scan Receipt</h2>
+                    <p class="mb-0 opacity-75 fs-6" style="max-width: 85%;">Upload your receipt image and let our AI automatically extract and categorize the details.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Scanning Form -->
+        <div class="card border-0 shadow-sm" style="border-radius: 1rem;">
+            <div class="card-body p-4 p-md-5">
+                <form method="POST" action="{{ url_for('upload') }}" enctype="multipart/form-data">
+                    
+                    <div class="mb-4">
+                        <label class="form-label text-muted fw-bold small text-uppercase spacing-1 mb-2">Select Log Month</label>
+                        <div class="input-group input-group-lg border rounded-3 px-2 py-1 transition-all focus-ring-group" style="background-color: #f8fafc; border-color: #e2e8f0 !important;">
+                            <span class="input-group-text bg-transparent border-0 text-info"><i class="fa-regular fa-calendar-alt"></i></span>
+                            <input type="text" name="month" class="form-control border-0 bg-transparent text-dark fw-bold px-2" value="{{ month }}" placeholder="---------, ----" onfocus="this.type='month'" onblur="if(!this.value)this.type='text'" required style="box-shadow: none;">
+                        </div>
+                    </div>
+                    
+                    <div class="mb-5">
+                        <label class="form-label text-muted fw-bold small text-uppercase spacing-1 mb-2">Receipt Image</label>
+                        
+                        <!-- Custom File Upload Container -->
+                        <div class="position-relative">
+                            <input class="form-control position-absolute w-100 h-100 opacity-0" type="file" name="receipt" accept="image/*" id="receiptFile" required style="cursor: pointer; z-index: 2;">
+                            <div class="border border-2 border-dashed rounded-4 p-5 text-center transition-all bg-light" id="dropZone" style="border-color: #cbd5e1 !important;">
+                                <div class="bg-white rounded-circle d-inline-flex justify-content-center align-items-center shadow-sm mb-3" style="width: 64px; height: 64px;">
+                                    <i class="fa-solid fa-camera text-info fs-3"></i>
+                                </div>
+                                <h5 class="fw-bold mb-1" id="fileText">Tap to select or take a photo</h5>
+                                <p class="text-muted small mb-0">Supports JPG, JPEG, PNG</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-info text-white btn-lg w-100 py-3 fw-bold rounded-pill shadow-sm d-flex justify-content-center align-items-center gap-2 transition-all hover-lift" style="background: linear-gradient(135deg, #14b8a6, #0ea5e9); border: none;">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i> Extract Details
+                    </button>
+                    
+                    <div class="text-center mt-4">
+                        <a href="{{ url_for('dashboard', month=month) }}" class="text-muted text-decoration-none small hover-primary d-inline-flex align-items-center transition-all fw-semibold"><i class="fa-solid fa-arrow-left me-2"></i>Cancel & Return</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('receiptFile').addEventListener('change', function(e) {
+        const fileText = document.getElementById('fileText');
+        const dropZone = document.getElementById('dropZone');
+        if (e.target.files && e.target.files[0]) {
+            fileText.innerHTML = '<span class="text-success"><i class="fa-solid fa-check-circle me-2"></i>' + e.target.files[0].name + '</span>';
+            dropZone.classList.replace('bg-light', 'bg-success');
+            dropZone.classList.add('bg-opacity-10');
+            dropZone.style.borderColor = '#10b981 !important';
+        } else {
+            fileText.innerHTML = 'Tap to select or take a photo';
+            dropZone.classList.replace('bg-success', 'bg-light');
+            dropZone.classList.remove('bg-opacity-10');
+            dropZone.style.borderColor = '#cbd5e1 !important';
+        }
+    });
+</script>
+
+<style>
+    .border-dashed { border-style: dashed !important; }
+    .spacing-1 { letter-spacing: 1px; }
+    .transition-all { transition: all 0.2s ease-in-out; }
+    .hover-primary:hover { color: #0ea5e9 !important; transform: translateX(-3px); }
+    .hover-lift:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(14,165,233,0.3) !important; }
+    .focus-ring-group:focus-within { border-color: #0ea5e9 !important; background-color: #fff !important; box-shadow: 0 0 0 4px rgba(14,165,233,0.1); }
+</style>
+{% endblock %}

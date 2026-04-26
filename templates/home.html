@@ -1,0 +1,187 @@
+{% extends "layout.html" %}
+
+{% block title %}ReceiptIQ — Dashboard{% endblock %}
+
+{% block head %}
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js" defer></script>
+{% endblock %}
+
+{% block content %}
+<div class="hero">
+  <div class="hero-left">
+    <h1>Dashboard</h1>
+    <p>Expense overview for <strong>{{ month_label }}</strong></p>
+  </div>
+  <div class="month-picker">
+    <select id="month-select">
+      {% set months = [('01','January'),('02','February'),('03','March'),('04','April'),('05','May'),('06','June'),('07','July'),('08','August'),('09','September'),('10','October'),('11','November'),('12','December')] %}
+      {% for num, name in months %}
+        <option value="2026-{{ num }}" {{ 'selected' if month == '2026-'+num }}>{{ name }} 2026</option>
+      {% endfor %}
+    </select>
+  </div>
+</div>
+
+{% if over %}
+<div class="over-banner">
+  <span style="font-size:1.6rem">⚠️</span>
+  <div>
+    <strong>Budget exceeded!</strong> You spent ₹{{ total }} against a budget of ₹{{ budget }} in {{ month_label }}.
+    <a href="{{ url_for('budget', month=month) }}" style="color:#fff;text-decoration:underline;margin-left:8px;font-weight:600">Update budget →</a>
+  </div>
+</div>
+{% else %}
+<div class="congrats-banner">
+  <span style="font-size:1.6rem">🎉</span>
+  <div>
+    <strong>Great job!</strong> You are within budget! ₹{{ total }} spent out of ₹{{ budget }} in {{ month_label }}.
+  </div>
+</div>
+{% endif %}
+
+{% if suggestion %}
+<div class="suggestion-box suggestion-{{ sug_type }}">
+  <span style="font-size: 1.4rem;">💡</span>
+  <div>{{ suggestion }}</div>
+</div>
+{% endif %}
+
+<!-- Stats Grid -->
+<div class="grid-4">
+  <div class="stat">
+    <div class="stat-label">Total Spent</div>
+    <div class="stat-val {{ 'red' if over else 'green' }}">₹{{ total }}</div>
+    <div class="stat-note">In {{ month_label }}</div>
+  </div>
+  <div class="stat">
+    <div class="stat-label">Monthly Budget</div>
+    <div class="stat-val sky">₹{{ budget }}</div>
+    <div class="stat-note"><a href="{{ url_for('budget', month=month) }}" style="color:var(--text-muted);">Adjust Budget →</a></div>
+  </div>
+  <div class="stat">
+    {% set rem = budget - total %}
+    <div class="stat-label">{{ 'Over Budget' if rem < 0 else 'Remaining' }}</div>
+    <div class="stat-val {{ 'red' if rem < 0 else 'green' }}">₹{{ "%.2f"|format(rem|abs) }}</div>
+    <div class="stat-note">
+      <div class="bar-track">
+        <div class="bar-fill {{ 'over' if rem < 0 else '' }}" style="width: {{ pct if pct <= 100 else 100 }}%"></div>
+      </div>
+      <span style="font-size:.7rem;color:var(--text-muted);display:block;margin-top:6px">{{ pct }}% used</span>
+    </div>
+  </div>
+  <div class="stat">
+    <div class="stat-label">Transactions</div>
+    <div class="stat-val {{ 'gold' if recent|length > 0 else 'sky' }}">{{ recent|length }}</div>
+    <div class="stat-note">Recorded in {{ month_label }}</div>
+  </div>
+</div>
+
+<!-- Charts Grid -->
+<div class="grid-2">
+  <div class="card section-gap">
+    <div class="card-head"><span style="font-size:1.3rem">🍩</span> Expenses by Category</div>
+    <div class="chart-box">
+      <canvas id="catChart"></canvas>
+    </div>
+  </div>
+  <div class="card section-gap">
+    <div class="card-head"><span style="font-size:1.3rem">📈</span> Monthly Spending Trend</div>
+    <div class="chart-box">
+      <canvas id="monthChart"></canvas>
+    </div>
+  </div>
+</div>
+
+<div class="grid-2">
+  <!-- Category breakdown -->
+  <div class="card section-gap">
+    <div class="card-head"><span style="font-size:1.3rem">📂</span> Category Breakdown</div>
+    {% if cats %}
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Category</th>
+            <th>Total</th>
+            <th>Share</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% set ns = namespace(grand=0) %}
+          {% for r in cats %}{% set ns.grand = ns.grand + r.total %}{% endfor %}
+          {% for r in cats %}
+          <tr>
+            <td><span class="badge {{ r.category|lower }}">{{ r.category }}</span></td>
+            <td class="amt">₹{{ "%.2f"|format(r.total) }}</td>
+            <td>
+              {% if ns.grand > 0 %}
+                {% set sh = (r.total / ns.grand * 100)|round(1) %}
+                <div style="display:flex;align-items:center;gap:10px">
+                  <div style="flex:1;height:6px;background:rgba(255,255,255,0.05);border-radius:99px;overflow:hidden">
+                    <div style="height:100%;width:{{ sh }}%;background:var(--primary-gradient);border-radius:99px"></div>
+                  </div>
+                  <span class="mono" style="font-size:.65rem;color:var(--text-muted);min-width:36px">{{ sh }}%</span>
+                </div>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="empty">
+      <span class="icon">📭</span>
+      <p>No expenses in {{ month_label }}.</p>
+      <a href="{{ url_for('home') }}" class="btn btn-outline" style="margin-top:16px;">Scan a receipt</a>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Recent transactions -->
+  <div class="card">
+    <div class="card-head" style="justify-content:space-between">
+      <div><span style="font-size:1.3rem">🕒</span> Recent Transactions</div>
+      <a href="{{ url_for('expenses', month=month) }}" class="btn btn-outline" style="padding: 6px 12px; font-size: 0.8rem;">View all →</a>
+    </div>
+    {% if recent %}
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Vendor</th>
+            <th>Amount</th>
+            <th>Cat</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for e in recent %}
+          <tr>
+            <td class="mono" style="font-size:.7rem;color:var(--text-muted)">{{ e.date[8:10] }}/{{ e.date[5:7] }}</td>
+            <td style="font-weight:600">{{ e.vendor[:12] }}{% if e.vendor|length > 12 %}..{% endif %}</td>
+            <td class="amt">₹{{ e.amount|int }}</td>
+            <td><span class="badge {{ e.category|lower }}">{{ e.category[:4] }}</span></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="empty">
+      <span class="icon">🧾</span>
+      <p>No transactions found.</p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+{% endblock %}
+
+
+
+

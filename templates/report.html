@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Expense Report - {{ month }}</title>
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- html2pdf.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --success: #10b981;
+            --danger: #ef4444;
+            --text-dark: #1e293b;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --bg-light: #f8fafc;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-light);
+            color: var(--text-dark);
+            margin: 0;
+            padding: 40px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* The container to be converted to PDF */
+        #report-container {
+            background-color: white;
+            width: 100%;
+            max-width: 800px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            border-radius: 8px; /* Remove if you want exact A4 corners */
+            overflow: hidden;
+            border: 1px solid var(--border);
+            padding: 40px;
+        }
+
+        .controls {
+            max-width: 800px;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            border-radius: 6px;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+            font-size: 0.95rem;
+        }
+
+        .btn-outline {
+            background: white;
+            color: var(--text-dark);
+            border: 1px solid var(--border);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 4px 10px rgba(79, 70, 229, 0.3);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn-outline:hover { background: var(--bg-light); }
+        .btn-primary:hover { filter: brightness(110%); }
+
+        /* Report Header */
+        .report-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 30px;
+            margin-bottom: 30px;
+        }
+
+        .brand-col i {
+            color: var(--primary);
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        .brand-col h1 { margin: 0; font-size: 1.8rem; font-weight: 800; letter-spacing: -0.5px; }
+        .brand-col p { margin: 5px 0 0; color: var(--text-muted); font-size: 0.9rem; }
+
+        .meta-col { text-align: right; }
+        .meta-col h2 { color: var(--text-muted); font-size: 1rem; margin: 0 0 5px; text-transform: uppercase; letter-spacing: 1px;}
+        .meta-col .val { font-size: 1.5rem; font-weight: 700; color: var(--primary); margin:0; }
+        .meta-col .sub { font-size: 0.85rem; color: var(--text-muted); margin-top: 5px;}
+
+        /* User & Summary details */
+        .details-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .info-box {
+            background: var(--bg-light);
+            border: 1px solid var(--border);
+            padding: 20px;
+            border-radius: 8px;
+        }
+
+        .box-title {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            font-weight: 700;
+            color: var(--text-muted);
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 8px;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+        }
+        .info-row:last-child { margin-bottom: 0; }
+        
+        .val-strong { font-weight: 600; color: var(--text-dark); }
+        .val-danger { font-weight: 700; color: var(--danger); }
+        .val-success { font-weight: 700; color: var(--success); }
+
+        /* Tables */
+        .section-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin: 0 0 15px 0;
+            color: var(--text-dark);
+            border-bottom: 2px solid var(--bg-light);
+            padding-bottom: 10px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 40px;
+        }
+
+        th, td {
+            text-align: left;
+            padding: 12px 15px;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.9rem;
+        }
+
+        th {
+            background-color: var(--bg-light);
+            color: var(--text-muted);
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.5px;
+        }
+
+        td { color: var(--text-dark); }
+
+        .amt { text-align: right; font-weight: 600; }
+        th.amt { text-align: right; }
+
+        .badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            background: var(--bg-light);
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+        }
+
+        /* Footer */
+        .report-footer {
+            text-align: center;
+            border-top: 1px solid var(--border);
+            padding-top: 20px;
+            margin-top: 50px;
+            color: var(--text-muted);
+            font-size: 0.8rem;
+        }
+
+        @media print {
+            body { background: white; padding: 0; }
+            #report-container { border: none; box-shadow: none; max-width: 100%; padding: 0;}
+            .controls { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="controls">
+        <a href="{{ url_for('dashboard', month=month) }}" class="btn btn-outline"><i class="fa-solid fa-arrow-left"></i> Back to Dashboard</a>
+        <button onclick="downloadPDF()" class="btn btn-primary"><i class="fa-solid fa-download"></i> Download PDF Report</button>
+    </div>
+
+    <div id="report-container">
+        
+        <div class="report-header">
+            <div class="brand-col">
+                <i class="fa-solid fa-chart-pie"></i>
+                <h1>ExpenseIQ</h1>
+                <p>Financial Summary & Analysis</p>
+            </div>
+            <div class="meta-col">
+                <h2>Statement Month</h2>
+                <div class="val">{{ month }}</div>
+                <div class="sub">Generated on <span id="current-date"></span></div>
+            </div>
+        </div>
+
+        <div class="details-grid">
+            <div class="info-box">
+                <div class="box-title">Account Holder Info</div>
+                <div class="info-row">
+                    <span>Name</span>
+                    <span class="val-strong">{{ user.name if user and user.name else 'Not Provided' }}</span>
+                </div>
+                <div class="info-row">
+                    <span>Email</span>
+                    <span class="val-strong">{{ user.email if user else 'Not Provided' }}</span>
+                </div>
+                <div class="info-row">
+                    <span>Occupation</span>
+                    <span class="val-strong">{{ user.occupation if user and user.occupation else 'Not Provided' }}</span>
+                </div>
+            </div>
+
+            <div class="info-box">
+                <div class="box-title">Financial Overview</div>
+                <div class="info-row">
+                    <span>Monthly Budget</span>
+                    <span class="val-strong">₹{{ "%.2f"|format(budget) }}</span>
+                </div>
+                <div class="info-row">
+                    <span>Total Spent</span>
+                    <span class="val-strong {{ 'val-danger' if spent > budget else '' }}">₹{{ "%.2f"|format(spent) }}</span>
+                </div>
+                <div class="info-row">
+                    <span>Net Balance</span>
+                    {% if budget > spent %}
+                        <span class="val-success">+₹{{ "%.2f"|format(budget - spent) }}</span>
+                    {% else %}
+                        <span class="val-danger">-₹{{ "%.2f"|format(spent - budget) }}</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <h3 class="section-title">Category Breakdown</h3>
+        {% if cat_data %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Category</th>
+                    <th>Share %</th>
+                    <th class="amt">Total Spent</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% set ns = namespace(total=0) %}
+                {% for c in cat_data %}{% set ns.total = ns.total + c.total %}{% endfor %}
+
+                {% for c in cat_data %}
+                <tr>
+                    <td><span class="badge">{{ c.category }}</span></td>
+                    <td>{{ "%.1f"|format((c.total / ns.total) * 100) }}%</td>
+                    <td class="amt">₹{{ "%.2f"|format(c.total) }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 40px;">No category data available for this month.</p>
+        {% endif %}
+
+        <h3 class="section-title">Expense Activity Log</h3>
+        {% if expenses %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Vendor / Description</th>
+                    <th>Category</th>
+                    <th class="amt">Amount</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for e in expenses %}
+                <tr>
+                    <td>{{ e.date }}</td>
+                    <td>
+                        <strong>{{ e.vendor }}</strong><br>
+                        <span style="font-size:0.8rem; color: var(--text-muted);">{{ e.description }}</span>
+                    </td>
+                    <td>{{ e.category }}</td>
+                    <td class="amt">₹{{ "%.2f"|format(e.amount) }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 40px;">No expenses recorded for this month.</p>
+        {% endif %}
+
+        <div class="report-footer">
+            <p>This is a computer-generated document by Intelligent Expense Tracker. No signature is required.</p>
+        </div>
+
+    </div>
+
+    <script>
+        // Set current date
+        document.getElementById('current-date').textContent = new Date().toLocaleDateString('en-IN', {
+            year: 'numeric', month: 'long', day: 'numeric'
+        });
+
+        // PDF Generation
+        function downloadPDF() {
+            const element = document.getElementById('report-container');
+            const opt = {
+                margin:       [0.5, 0.5, 0.5, 0.5], // top, left, bottom, right
+                filename:     'Expense_Report_{{ month }}.pdf',
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2, useCORS: true },
+                jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+            };
+
+            // Temporarily remove box-shadow for cleaner PDF
+            const origShadow = element.style.boxShadow;
+            const origBorder = element.style.border;
+            element.style.boxShadow = 'none';
+            element.style.border = 'none';
+
+            html2pdf().set(opt).from(element).save().then(() => {
+                // Restore styles
+                element.style.boxShadow = origShadow;
+                element.style.border = origBorder;
+            });
+        }
+    </script>
+</body>
+</html>

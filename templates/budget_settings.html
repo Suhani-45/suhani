@@ -1,0 +1,87 @@
+{% extends 'layout.html' %}
+{% block content %}
+<div class="row justify-content-center mt-4">
+    <div class="col-md-9 col-lg-7">
+        
+        <!-- Premium Header Card -->
+        <div class="card border-0 text-white mb-4 position-relative" style="background: linear-gradient(135deg, #4f46e5 0%, #0ea5e9 100%); border-radius: 1rem; overflow: hidden; box-shadow: 0 10px 30px rgba(14,165,233,0.3);">
+            <div class="card-body p-4 p-md-5">
+                <i class="fa-solid fa-piggy-bank position-absolute" style="font-size: 10rem; right: -25px; bottom: -30px; opacity: 0.15; transform: rotate(-10deg);"></i>
+                
+                <div class="mb-4">
+                    <span class="badge bg-white text-primary mb-3 px-3 py-2 rounded-pill fw-bold shadow-sm" style="font-size: 0.85rem;"><i class="fa-regular fa-calendar me-1"></i>Setting for {{ month }}</span>
+                    <h2 class="fw-bold mb-2">Budget Settings</h2>
+                    <p class="mb-0 opacity-75 fs-6" style="max-width: 80%;">Take control of your spending and reach your financial goals faster.</p>
+                </div>
+
+                {% set pct = (spent / current_budget * 100) if current_budget > 0 else 0 %}
+                <div class="bg-white bg-opacity-10 rounded p-4 backdrop-blur mt-4 border border-white border-opacity-25 shadow-sm">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="fw-semibold text-white">Current Limit Utilization</span>
+                        <span class="fw-bold fs-5">{{ "%.1f"|format(pct) }}%</span>
+                    </div>
+                    <div class="progress overflow-visible" style="height: 10px; background-color: rgba(255,255,255,0.2); border-radius: 99px;">
+                        <div class="progress-bar position-relative {{ 'bg-danger' if pct > 100 else 'bg-warning' if pct > 80 else 'bg-white' }}" role="progressbar" style="width: {{ pct if pct <= 100 else 100 }}%; border-radius: 99px; {{ 'box-shadow: 0 0 10px rgba(255,255,255,0.8);' if pct <= 80 else '' }}">
+                            {% if pct > 0 %}
+                                <div class="position-absolute border border-3 border-white rounded-circle bg-primary" style="width: 18px; height: 18px; right: -9px; top: -4px; {{ 'background-color: var(--bs-warning) !important;' if pct > 80 else '' }} {{ 'background-color: var(--bs-danger) !important;' if pct > 100 else '' }}"></div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mt-3 small font-monospace">
+                        <span class="fw-bold">₹{{ "%.2f"|format(spent) }} Used</span>
+                        <span class="opacity-75">₹{{ "%.2f"|format(current_budget) }} Limit</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Configuration Form -->
+        <div class="card border-0 shadow-sm" style="border-radius: 1rem;">
+            <div class="card-body p-4 p-md-5">
+                <form method="POST" action="{{ url_for('budget_settings') }}">
+                    <input type="hidden" name="month" value="{{ month }}">
+                    
+                    <div class="d-flex align-items-center mb-4 pb-3 border-bottom">
+                        <div class="bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 54px; height: 54px;">
+                            <i class="fa-solid fa-sliders text-primary fs-4"></i>
+                        </div>
+                        <div>
+                            <h5 class="mb-0 fw-bold text-dark">Adjust Configuration</h5>
+                            <small class="text-muted">Enter your desired maximum budget</small>
+                        </div>
+                    </div>
+
+                    <div class="mb-4 px-2">
+                        <label class="form-label text-muted fw-bold small text-uppercase spacing-1 mb-3">Target Budget Amount</label>
+                        <div class="input-group input-group-lg border border-2 rounded-3 px-2 py-1 transition-all focus-ring-group" style="background-color: #f8fafc; border-color: #e2e8f0 !important;">
+                            <span class="input-group-text bg-transparent border-0 text-primary fw-bolder fs-4 pe-1">₹</span>
+                            <input type="number" step="0.01" name="budget" class="form-control border-0 bg-transparent fw-bolder fs-3 text-dark px-2" value="{{ "%.2f"|format(current_budget) }}" required style="box-shadow: none;">
+                        </div>
+                        <div class="form-text mt-3 text-muted"><i class="fa-solid fa-circle-info me-1 text-primary opacity-75"></i> Budget updates apply instantly to insights and alerts for <strong>{{ month }}</strong>.</div>
+                    </div>
+                    
+                    <div class="px-2 mt-5">
+                        <button type="submit" class="btn btn-primary btn-lg w-100 py-3 fw-bold rounded-pill shadow d-flex justify-content-center align-items-center gap-2 transition-all hover-lift" style="background: linear-gradient(135deg, #4f46e5, #0ea5e9); border: none;">
+                            <i class="fa-solid fa-floppy-disk"></i> Apply Changes
+                        </button>
+                    </div>
+                    
+                    <div class="text-center mt-4">
+                        <a href="{{ url_for('dashboard', month=month) }}" class="text-muted text-decoration-none small hover-primary d-inline-flex align-items-center transition-all fw-semibold"><i class="fa-solid fa-arrow-left me-2"></i>Back to Dashboard</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+    </div>
+</div>
+
+<style>
+    .backdrop-blur { backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+    .spacing-1 { letter-spacing: 1px; }
+    .transition-all { transition: all 0.2s ease-in-out; }
+    .hover-primary:hover { color: #0ea5e9 !important; transform: translateX(-3px); }
+    .hover-lift:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(14,165,233,0.3) !important; }
+    .focus-ring-group:focus-within { border-color: #0ea5e9 !important; background-color: #fff !important; box-shadow: 0 0 0 4px rgba(14,165,233,0.1); }
+</style>
+{% endblock %}

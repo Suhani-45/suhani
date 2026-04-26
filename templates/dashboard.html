@@ -1,0 +1,332 @@
+{% extends 'layout.html' %}
+{% block content %}
+<!-- Premium Header Section -->
+<div class="card border-0 text-white mb-4 position-relative" style="background: linear-gradient(135deg, #4f46e5 0%, #0ea5e9 100%); border-radius: 1rem; overflow: hidden; box-shadow: 0 10px 30px rgba(14, 165, 233, 0.25);">
+    <div class="card-body p-4 p-md-5 z-1 position-relative d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+        <div>
+            <div class="d-flex align-items-center text-white opacity-75 mb-2">
+                <span class="small text-uppercase flex-spacing-1 fw-bold"><i class="fa-solid fa-chart-pie me-1"></i> Overview & Analytics</span>
+            </div>
+            <h2 class="fw-bolder mb-0 display-6">Financial Dashboard</h2>
+        </div>
+        
+        <!-- Global Month Selector & Report Action -->
+        <div class="d-flex align-items-center gap-3 ms-md-auto z-1">
+            <div class="bg-white bg-opacity-25 rounded-pill px-3 py-2 shadow-sm border border-light border-opacity-25" style="backdrop-filter: blur(5px);">
+                <form method="GET" class="d-flex align-items-center mb-0">
+                    <i class="fa-regular fa-calendar-check text-white me-2"></i>
+                    <input type="month" name="month" value="{{ month }}" class="form-control form-control-sm bg-transparent border-0 text-white fw-bold shadow-none p-0 cursor-pointer" onchange="this.form.submit()" style="color-scheme: dark; width: 130px; font-size: 1.1rem;">
+                </form>
+            </div>
+            <a href="{{ url_for('generate_report', month=month) }}" class="btn rounded-pill px-4 py-2 shadow border-0 text-dark fw-bold d-flex align-items-center gap-2 btn-hover-lift" style="background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);">
+                <i class="fa-solid fa-file-pdf"></i> View Report
+            </a>
+        </div>
+        
+    </div>
+        <div class="bg-white bg-opacity-10 rounded-circle d-none d-md-flex align-items-center justify-content-center shadow-sm" style="backdrop-filter: blur(4px); width: 80px; height: 80px;">
+            <i class="fa-solid fa-chart-pie text-white fs-1"></i>
+        </div>
+    </div>
+    <div class="position-absolute z-0 opacity-10" style="right: 5%; bottom: -20%;">
+         <i class="fa-solid fa-chart-line" style="font-size: 14rem; transform: rotate(-5deg);"></i>
+    </div>
+</div>
+
+<!-- Smart AI Suggestions Banner -->
+{% if suggestion %}
+<div class="card border-0 mb-4 overflow-hidden position-relative" style="border-radius: 1rem; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
+    {% set is_exceeded = (suggestion.status == 'exceeded') %}
+    {% set is_under = (suggestion.status == 'under') %}
+    
+    <div class="position-absolute top-0 start-0 w-100" style="height: 4px; background: {% if is_exceeded %}linear-gradient(90deg, #ef4444, #f87171){% elif is_under %}linear-gradient(90deg, #10b981, #34d399){% else %}linear-gradient(90deg, #f59e0b, #fbbf24){% endif %};"></div>
+    
+    <div class="card-body p-4 {% if is_exceeded %}bg-danger bg-opacity-10{% elif is_under %}bg-success bg-opacity-10{% else %}bg-warning bg-opacity-10{% endif %}">
+        <div class="d-flex flex-column flex-md-row gap-3 align-items-md-start">
+            <div class="flex-shrink-0">
+                <div class="rounded-circle d-inline-flex justify-content-center align-items-center bg-white shadow-sm" style="width: 52px; height: 52px;">
+                    <i class="fa-solid {% if is_exceeded %}fa-triangle-exclamation text-danger{% elif is_under %}fa-hand-sparkles text-success{% else %}fa-circle-exclamation text-warning{% endif %} fs-4"></i>
+                </div>
+            </div>
+            <div class="flex-grow-1">
+                <h5 class="fw-bold {% if is_exceeded %}text-danger{% elif is_under %}text-success{% else %}text-warning-dark{% endif %} mb-1">
+                    {% if is_exceeded %}Budget Exceeded!{% elif is_under %}Outstanding Financial Health{% else %}Caution: Approaching Limit{% endif %}
+                </h5>
+                <p class="mb-0 text-dark opacity-75 fw-semibold" style="font-size: 0.95rem;">{{ suggestion.msg }}</p>
+                
+                {% if is_under %}
+                <div class="mt-4 pt-3 border-top border-success border-opacity-25">
+                    <p class="fw-bold text-dark mb-3">Maximize your leftover ₹{{ "%.2f"|format(suggestion.savings_amount) }}</p>
+                    <div class="d-flex flex-wrap gap-2 mb-3">
+                        <button type="button" class="btn btn-success fw-bold rounded-pill px-4 shadow-sm btn-hover-lift" onclick="showOption('saving')"><i class="fa-solid fa-piggy-bank me-2"></i>Save It</button>
+                        <button type="button" class="btn btn-outline-success fw-bold rounded-pill px-4 bg-white" onclick="showOption('investment')"><i class="fa-solid fa-arrow-trend-up me-2"></i>Invest It</button>
+                    </div>
+                    
+                    <!-- Dynamic Info Cards -->
+                    <div id="saving-box" class="d-none bg-white p-4 rounded-4 shadow-sm border border-success border-opacity-25 mt-2 position-relative overflow-hidden">
+                        <div class="position-absolute top-0 end-0 p-3 opacity-10"><i class="fa-solid fa-piggy-bank" style="font-size: 4rem;"></i></div>
+                        <h6 class="fw-bolder text-success mb-3">Savings Strategy for ₹{{ "%.2f"|format(suggestion.savings_amount) }}</h6>
+                        <ul class="text-muted mb-0 ps-3 small lh-lg position-relative z-1">
+                            {% if suggestion.savings_amount <= 100 %}
+                            <li><strong>Micro-Savings:</strong> Even small amounts count! Transfer to a digital piggy bank.</li>
+                            <li><strong>Rounding Up:</strong> Accumulate these small leftovers over several months for an emergency buffer.</li>
+                            <li><strong>Reward Yourself:</strong> Keep building this up incrementally, or treat yourself without guilt!</li>
+                            {% elif suggestion.savings_amount <= 1000 %}
+                            <li><strong>Emergency Fund:</strong> Put 20-30% of this into a dedicated emergency fund account.</li>
+                            <li><strong>Short-Term Goal:</strong> Stash it in a high-yield savings account if you're saving for a gadget.</li>
+                            <li><strong>Debt Repayment:</strong> Use extra money to clear small credit card balances faster!</li>
+                            {% else %}
+                            <li><strong>High-Yield Savings:</strong> Secure this in a high-yield savings account or Fixed Deposit (FD).</li>
+                            <li><strong>Emergency Buffer:</strong> Aim to keep 3-6 months of expenses accessible. Great head start!</li>
+                            <li><strong>Major Purchases:</strong> Designate a portion towards long-term goals.</li>
+                            {% endif %}
+                        </ul>
+                    </div>
+                    
+                    <div id="investment-box" class="d-none bg-white p-4 rounded-4 shadow-sm border border-success border-opacity-25 mt-2 position-relative overflow-hidden">
+                        <div class="position-absolute top-0 end-0 p-3 opacity-10"><i class="fa-solid fa-arrow-trend-up" style="font-size: 4rem;"></i></div>
+                        <h6 class="fw-bolder text-success mb-3">Investment Strategy for ₹{{ "%.2f"|format(suggestion.savings_amount) }}</h6>
+                        <ul class="text-muted mb-4 ps-3 small lh-lg position-relative z-1">
+                            {% if suggestion.savings_amount <= 100 %}
+                            <li><strong>Digital Gold:</strong> Invest with as little as ₹1 to accumulate precious assets.</li>
+                            <li><strong>Micro-Investing Apps:</strong> Try auto-investing apps that round-up spare change.</li>
+                            <li><strong>Skill Investment:</strong> Buy a cheap e-book or fractional online course to boost skills!</li>
+                            {% elif suggestion.savings_amount <= 1000 %}
+                            <li><strong>Mutual Funds (SIPs):</strong> Start a systematic plan with as little as ₹500/month.</li>
+                            <li><strong>Index Funds:</strong> Low-cost options to mirror broader market returns sustainably.</li>
+                            <li><strong>Fractional Shares:</strong> Buy fractions of large stocks with mid-range extra cash.</li>
+                            {% else %}
+                            <li><strong>Diversified Portfolio:</strong> Spread across Mutual Funds, Direct Equity Stocks, and Debt.</li>
+                            <li><strong>Direct Stocks:</strong> Explore long-term value stocks for higher rewards.</li>
+                            <li><strong>Retirement Accounts:</strong> Supplement retirement funds (like PPF/NPS) for compounding.</li>
+                            {% endif %}
+                        </ul>
+                        
+                        {% if suggestion.savings_amount > 100 %}
+                        <div class="position-relative z-1 border-top pt-3">
+                            <span class="badge bg-light border text-dark fw-bold mb-3">Explore Investment Types</span>
+                            <div class="d-flex flex-column gap-2">
+                                <button class="btn btn-light border text-start p-3 rounded-3 btn-hover-lift" onclick="showInvestmentDetail('mutual_funds')">
+                                    <div class="fw-bold text-dark"><i class="fa-solid fa-building-columns text-primary me-2"></i>Mutual Funds (SIPs)</div>
+                                    <div class="text-muted small mt-1">Steady growth over time via pooled investments</div>
+                                </button>
+                                <button class="btn btn-light border text-start p-3 rounded-3 btn-hover-lift" onclick="showInvestmentDetail('stocks')">
+                                    <div class="fw-bold text-dark"><i class="fa-solid fa-chart-line text-success me-2"></i>Stocks & Equities</div>
+                                    <div class="text-muted small mt-1">Higher risk, potentially higher long-term reward</div>
+                                </button>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Detail Explainers -->
+                    <div id="detail-mutual_funds" class="d-none mt-3 p-4 bg-light rounded-4 border-start border-4 border-primary position-relative z-1">
+                        <h6 class="fw-bold text-dark mb-2">How Mutual Funds Work</h6>
+                        <p class="small text-muted mb-3 lh-base">A mutual fund is a company that pools money from many investors and invests the money in securities such as stocks, bonds, and short-term debt. An SIP (Systematic Investment Plan) is a great way to start.</p>
+                        <a href="https://www.investor.gov/introduction-investing/investing-basics/investment-products/mutual-funds-and-exchange-traded-2" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill fw-bold"><i class="fa-solid fa-external-link-alt me-1"></i>Read Official Guide</a>
+                    </div>
+                    <div id="detail-stocks" class="d-none mt-3 p-4 bg-light rounded-4 border-start border-4 border-success position-relative z-1">
+                        <h6 class="fw-bold text-dark mb-2">Understanding Stocks</h6>
+                        <p class="small text-muted mb-3 lh-base">A stock, also known as equity, is a security that represents the ownership of a fraction of a corporation. This entitles the owner of the stock to a proportion of the corporation's assets and profits.</p>
+                        <a href="https://www.investor.gov/introduction-investing/investing-basics/investment-products/stocks" target="_blank" class="btn btn-sm btn-outline-success rounded-pill fw-bold"><i class="fa-solid fa-external-link-alt me-1"></i>Read Official Guide</a>
+                    </div>
+                    
+                    <script>
+                        function showOption(type) {
+                            document.getElementById('saving-box').classList.add('d-none');
+                            document.getElementById('investment-box').classList.add('d-none');
+                            hideAllInvestmentDetails();
+                            document.getElementById(type + '-box').classList.remove('d-none');
+                        }
+                        function showInvestmentDetail(id) {
+                            hideAllInvestmentDetails();
+                            document.getElementById('detail-' + id).classList.remove('d-none');
+                        }
+                        function hideAllInvestmentDetails() {
+                            document.getElementById('detail-mutual_funds').classList.add('d-none');
+                            document.getElementById('detail-stocks').classList.add('d-none');
+                        }
+                    </script>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<div class="row g-4 mb-4">
+    <!-- Spend Overview Card -->
+    <div class="col-lg-6">
+        <div class="card h-100 border-0 shadow-sm" style="border-radius: 1rem;">
+            <div class="card-body p-4 p-xl-5 d-flex flex-column justify-content-center">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <span class="text-muted fw-bold small text-uppercase flex-spacing-1">Spent in {{ month }}</span>
+                    <a href="{{ url_for('budget_settings') }}" class="btn btn-sm btn-light border rounded-pill fw-semibold text-primary px-3 btn-hover-lift"><i class="fa-solid fa-pencil me-1"></i>Edit Budget</a>
+                </div>
+                
+                <div class="mb-4">
+                    <h1 class="display-5 fw-bolder mb-0 {% if suggestion and suggestion.status == 'exceeded' %}text-danger{% else %}text-dark{% endif %}">₹{{ "%.2f"|format(spent) }}</h1>
+                    <p class="text-muted fw-medium mt-1 mb-0">of ₹{{ "%.2f"|format(budget) }} monthly limit</p>
+                </div>
+                
+                {% set pct = (spent / budget * 100) if budget > 0 else 0 %}
+                <div class="mt-auto">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="small fw-bold {{ 'text-danger' if pct > 100 else 'text-muted' }}">{{ "%.1f"|format(pct) }}% Utilized</span>
+                        {% if budget > spent %}
+                            <span class="small fw-bold text-success">₹{{ "%.2f"|format(budget - spent) }} left</span>
+                        {% else %}
+                            <span class="small fw-bold text-danger">₹{{ "%.2f"|format(spent - budget) }} over</span>
+                        {% endif %}
+                    </div>
+                    <div class="progress overflow-visible" style="height: 10px; background-color: #f1f5f9; border-radius: 99px;">
+                        <div class="progress-bar position-relative rounded-pill {% if pct > 100 %}bg-danger{% elif pct > 80 %}bg-warning{% else %}bg-primary progress-gradient{% endif %}" role="progressbar" style="width: {{ pct if pct <= 100 else 100 }}%;">
+                            {% if pct > 0 %}
+                            <div class="position-absolute bg-white border border-2 rounded-circle shadow-sm" style="width: 16px; height: 16px; right: -8px; top: -3px; border-color: inherit;"></div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Analysis & Trend Card -->
+    <div class="col-lg-6">
+        <div class="card h-100 border-0 shadow-sm position-relative overflow-hidden" style="border-radius: 1rem;">
+            <!-- Abstract background shape -->
+            <div class="position-absolute end-0 bottom-0 opacity-10" style="width: 150px; height: 150px; background: radial-gradient(circle, #3b82f6 0%, transparent 70%); border-radius: 50%; transform: translate(30%, 30%);"></div>
+            
+            <div class="card-body p-4 p-xl-5 z-1 position-relative">
+                <span class="text-muted fw-bold small text-uppercase flex-spacing-1 d-block mb-4"><i class="fa-solid fa-code-compare me-2"></i>Analyze Trends</span>
+                
+                <form method="GET" class="mb-4">
+                    <input type="hidden" name="month" value="{{ month }}">
+                    <div class="d-flex gap-2 align-items-center input-group-lg">
+                        <div class="position-relative flex-grow-1">
+                            <i class="fa-regular fa-calendar-alt position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
+                            <input type="{{ 'month' if compare_month else 'text' }}" name="compare_month" value="{{ compare_month }}" class="form-control border-0 bg-light rounded-pill ps-5 fw-bold text-dark" placeholder="Select month to compare e.g., 2024-03" onfocus="this.type='month'" onblur="if(!this.value)this.type='text'" required style="box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);">
+                        </div>
+                        <button type="submit" class="btn btn-primary rounded-circle shadow-sm btn-hover-lift d-flex align-items-center justify-content-center flex-shrink-0" style="width: 50px; height: 50px; background: linear-gradient(135deg, #4f46e5, #3b82f6); border: none;">
+                            <i class="fa-solid fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </form>
+                
+                {% if comparison %}
+                    <div class="p-4 rounded-4" style="background: linear-gradient(145deg, #f8fafc, #f1f5f9); border: 1px solid #e2e8f0;">
+                        <div class="d-flex align-items-center mb-2">
+                            <div class="rounded-circle bg-white shadow-sm d-flex justify-content-center align-items-center me-3" style="width: 40px; height: 40px;">
+                                <i class="fa-solid fa-chart-line text-primary"></i>
+                            </div>
+                            <h6 class="mb-0 fw-bold text-dark">{{ comparison.higher_msg }}</h6>
+                        </div>
+                        <p class="text-muted small mb-0 ps-5 ms-1 fw-medium">{{ comparison.conclusion }}</p>
+                    </div>
+                {% else %}
+                    <div class="text-center py-4 text-muted border border-dashed rounded-4 bg-light">
+                        <i class="fa-solid fa-chart-area fs-1 mb-2 opacity-25"></i>
+                        <p class="mb-0 fw-semibold">Select a month above to perform insight comparison.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Category Breakdown Card -->
+    <div class="col-12">
+        <div class="card border-0 shadow-sm" style="border-radius: 1rem;">
+            <div class="card-body p-4 p-xl-5">
+                <div class="row align-items-center">
+                    <div class="col-lg-4 mb-4 mb-lg-0">
+                        <span class="text-muted fw-bold small text-uppercase flex-spacing-1 d-block mb-2"><i class="fa-solid fa-layer-group me-2"></i>Category Breakdown</span>
+                        <h3 class="fw-bolder mb-1">Where is your money going?</h3>
+                        <p class="text-muted small mb-4">Detailed visual breakdown of expenses for {{ month }}.</p>
+                        
+                        {% if cat_data %}
+                            <div class="d-flex flex-column gap-3">
+                                {% set ns = namespace(total=0) %}
+                                {% for item in cat_data %}{% set ns.total = ns.total + item.total %}{% endfor %}
+                                
+                                {% for item in cat_data %}
+                                    <div class="d-flex align-items-center justify-content-between">
+                                        <div class="d-flex align-items-center">
+                                            {% set colors = ['#10B981', '#0EA5E9', '#F59E0B', '#EF4444', '#8B5CF6', '#14B8A6'] %}
+                                            <div class="rounded-circle me-3" style="width: 12px; height: 12px; background-color: {{ colors[loop.index0 % 6] }};"></div>
+                                            <div>
+                                                <div class="fw-bold text-dark small">{{ item.category }}</div>
+                                            </div>
+                                        </div>
+                                        <div class="text-end">
+                                            <div class="fw-bolder text-dark small">₹{{ "%.2f"|format(item.total) }}</div>
+                                            <div class="text-muted font-monospace" style="font-size: 0.7rem;">{{ "%.1f"|format(item.total / ns.total * 100) }}%</div>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="col-lg-8">
+                        {% if cat_data %}
+                            <div class="position-relative d-flex justify-content-center align-items-center" style="height: 350px;">
+                                <canvas id="catChart" style="max-height: 100%;"></canvas>
+                                <!-- Center Text -->
+                                <div class="position-absolute text-center" style="pointer-events: none;">
+                                    <span class="text-muted small fw-bold text-uppercase d-block mb-1">Total</span>
+                                    <h4 class="fw-bolder text-dark mb-0">₹{{ "%.0f"|format(spent) }}</h4>
+                                </div>
+                            </div>
+                        {% else %}
+                            <div class="text-center py-5 text-muted h-100 d-flex flex-column justify-content-center align-items-center bg-light rounded-4 border border-dashed">
+                                <i class="fa-solid fa-inbox fs-1 mb-3 opacity-25"></i>
+                                <h5 class="fw-bold mb-1">No Data Available</h5>
+                                <p class="mb-0 small">Log expenses this month to see visual reports.</p>
+                                <a href="{{ url_for('add_expense') }}" class="btn btn-sm btn-outline-primary rounded-pill mt-3"><i class="fa-solid fa-plus me-1"></i>Add Expense</a>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const data = {{ cat_data|tojson if cat_data else 'null' }};
+    if (data && data.length > 0) {
+        new Chart(document.getElementById('catChart').getContext('2d'), { 
+            type: 'doughnut', 
+            data: { 
+                labels: data.map(d => d.category), 
+                datasets: [{ 
+                    data: data.map(d => d.total), 
+                    backgroundColor: ['#10B981', '#0EA5E9', '#F59E0B', '#EF4444', '#8B5CF6', '#14B8A6'],
+                    borderWidth: 0,
+                    hoverOffset: 15,
+                    borderRadius: 4
+                }] 
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '75%',
+                plugins: {
+                    legend: { display: false } // Custom legend implemented in HTML
+                },
+                layout: { padding: 20 }
+            }
+        });
+    }
+</script>
+
+<style>
+    .flex-spacing-1 { letter-spacing: 1px; }
+    .text-warning-dark { color: #d97706; }
+    .border-dashed { border-style: dashed !important; border-color: #cbd5e1 !important; }
+    .btn-hover-lift { transition: transform 0.2s ease, box-shadow 0.2s ease; }
+    .btn-hover-lift:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+    .progress-gradient { background: linear-gradient(90deg, #3b82f6, #4f46e5); }
+</style>
+{% endblock %}
